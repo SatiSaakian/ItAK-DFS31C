@@ -1,27 +1,27 @@
+# Définition de la variable workspace_path
+workspace_path ?= $(shell pwd | sed 's/ /\\ /g')
 
-include env
+# Création du répertoire .ssh
+.ssh:
+	mkdir -p .ssh
 
+# Création de la clé SSH
+.ssh/it_akademy_rsa: .ssh
+	ssh-keygen -q -f ./.ssh/it_akademy_rsa
 
-GIT_CONFIG_PATH=$(WORKSPACE_PATH)/git/config
+# Vérification de l'installation de Git et création du répertoire .git
+.git:
+	@which git || brew install git
+	mkdir .git
 
+# Création du fichier de configuration Git
+.git/config: .git
+	@echo "[user]\n\tname = Sati Saakin\n\temail = s.saakian@it-akademy.fr" > .git/config
+	@echo "[core]\n\tsshCommand = \"ssh -i $(workspace_path)/.ssh/it_akademy_rsa\"" >> .git/config
+	@git config --list | grep $(workspace_path)/.git/config | wc -l | tr -d ' ' || (echo "[includeIf \"gitdir:$(workspace_path)/\"]\n\tpath=$(workspace_path)/.git/config" >> ~/.gitconfig)
 
-SSH_DIR=$(WORKSPACE_PATH)/ssh
-SSH_KEY_PATH=$(SSH_DIR)/id_rsa
+# Affichage du contenu des fichiers
+workspace: .ssh/it_akademy_rsa .git/config
+	cat ./.ssh/it_akademy_rsa.pub
+	cat .git/config
 
-
-git_config:
-	mkdir -p $(WORKSPACE_PATH)/git
-	echo "[user]" > $(GIT_CONFIG_PATH)
-	echo "	name = $(USER_NAME)" >> $(GIT_CONFIG_PATH)
-	echo "	email = $(USER_EMAIL)" >> $(GIT_CONFIG_PATH)
-
-
-ssh_keys:
-	mkdir -p $(SSH_DIR)
-	ssh-keygen -t rsa -b 4096 -f $(SSH_KEY_PATH) -N "" -C "$(USER_EMAIL)"
-
-show_git_config:
-	cat $(GIT_CONFIG_PATH)
-
-
-all: git_config ssh_keys
