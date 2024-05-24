@@ -4,3 +4,4 @@ if (true) {
   echo "This will cause a syntax error
 }
 ?>
+///
